@@ -1,0 +1,46 @@
+name: Build and Commit Dist
+
+on:
+  push:
+    branches:
+      - main
+      - master
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20' # Recommended latest LTS
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build project
+        run: npm run build
+
+      - name: Commit and push dist folder
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          
+          # Force add dist folder just in case it's in .gitignore
+          git add dist/ --force
+          
+          # Commit and push if there are changes
+          if git diff --staged --quiet; then
+            echo "No changes in dist/ folder to commit."
+          else
+            git commit -m "chore: build output to dist/ folder [skip ci]"
+            git push
+          fi
